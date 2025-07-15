@@ -1,65 +1,71 @@
-const axios = require('axios');
-const fs = require('fs');
+# 🚀 CoinMarketCap Token Scraper (Top 1000)
 
-// Replace with your CoinMarketCap API key
-const API_KEY = 'YOUR_API_KEY_HERE'; // 👈 Replace with your actual API key
+This Node.js bot fetches the **top 1000 tokens** from CoinMarketCap along with their **names and official websites**, saving the result to a `.csv` file.
 
-const headers = {
-  'X-CMC_PRO_API_KEY': API_KEY,
-};
+---
 
-const tokenData = [];
+## 📌 Features ##
 
-async function delay(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
+- ✅ Fetches top 1000 cryptocurrencies
+- 🌐 Extracts official website for each token
+- 💾 Saves data to `top_1000_tokens.csv`
+- 🔐 Respects CoinMarketCap free API rate limits
 
-async function fetchTokenBatch(start) {
-  const listingsUrl = `https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?start=${start}&limit=100`;
+---
 
-  try {
-    const listingResponse = await axios.get(listingsUrl, { headers });
-    const coins = listingResponse.data.data;
+## 📁 Project Structure
 
-    for (const coin of coins) {
-      const coinId = coin.id;
-      const name = coin.name;
+CMC_BOT/
+├── fetch_top_1000.js # Main bot script
+├── top_1000_tokens.csv # Output file (generated after run)
+├── package.json # Project configuration
+├── .gitignore # Ignores node_modules and secrets
+└── README.md # Project documentation
 
-      // Delay to respect rate limits
-      await delay(3000);
 
-      const infoUrl = `https://pro-api.coinmarketcap.com/v1/cryptocurrency/info?id=${coinId}`;
-      const infoResponse = await axios.get(infoUrl, { headers });
-      const websiteList = infoResponse.data.data[coinId.toString()].urls.website;
-      const website = websiteList && websiteList.length ? websiteList[0] : 'N/A';
+---
 
-      tokenData.push({ name, website });
-      console.log(`Fetched: ${name}`);
-    }
+## 🛠 Requirements
 
-  } catch (error) {
-    console.error(`❌ Error fetching batch starting at ${start}:`, error.message);
-  }
-}
+- Node.js (v16 or higher)
+- A free [CoinMarketCap API key](https://coinmarketcap.com/api)
 
-async function fetchAllTokens() {
-  console.log("🚀 Starting to fetch top 1000 tokens...");
+---
 
-  for (let start = 1; start <= 1000; start += 100) {
-    console.log(`🔄 Fetching tokens ${start} to ${start + 99}...`);
-    await fetchTokenBatch(start);
-  }
+## 🚀 How to Use
 
-  saveToCSV();
-}
+### 1. Set Up the Project
 
-function saveToCSV() {
-  const header = "Token Name,Website\n";
-  const rows = tokenData.map(t => `"${t.name}","${t.website}"`).join("\n");
-  const csv = header + rows;
+```bash
+mkdir CMC_BOT
+cd CMC_BOT
+npm init -y
+npm install axios
 
-  fs.writeFileSync("top_1000_tokens.csv", csv);
-  console.log("✅ Done! Saved to top_1000_tokens.csv");
-}
+### 2. Add the Script
+Create a file named index.js and paste the full bot code there.
 
-fetchAllTokens();
+🔑 Replace this line in the script:
+const API_KEY = 'YOUR_API_KEY_HERE'; // with your actual API key.
+
+### 3. Run the Bot
+node index.js
+⏳ It may take 30–40 minutes due to rate limits.
+
+📦 Output
+The script will generate a file:
+top_1000_tokens.csv
+
+Sample format:
+Token Name,Website
+Bitcoin,https://bitcoin.org
+Ethereum,https://ethereum.org
+...
+
+🧠 Notes
+Each token info request is delayed by 3 seconds to stay within the free tier limit (30 requests per minute).
+
+Tokens are fetched in batches of 100 to collect all 1000 efficiently.
+
+🧡 License
+This project is open-source and free to use under the MIT License.
